@@ -1,11 +1,12 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs"
+import { useAuth, useUser } from "@clerk/nextjs"
 import { AnimatePresence, motion } from "framer-motion"
 import { ArrowUp, ImagePlus, Loader2, Trash2, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Button, Card, cn, PageHeader } from "@/components/ui"
+import { apiConfigured, apiFetch } from "@/lib/api"
 import { store, type ChatMsg } from "@/lib/store"
 
 function FanAttachments({
@@ -53,12 +54,14 @@ function FanAttachments({
 
 export default function ChatPage() {
   const { user } = useUser()
+  const { getToken } = useAuth()
   const [msgs, setMsgs] = useState<ChatMsg[]>([])
   const [draft, setDraft] = useState("")
   const [busy, setBusy] = useState(false)
   const [attachments, setAttachments] = useState<{ id: string; preview: string; name: string; file: File }[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
+  const hasApi = apiConfigured()
 
   useEffect(() => {
     setMsgs(store.getChat())
@@ -104,17 +107,41 @@ export default function ChatPage() {
     setDraft("")
     setAttachments([])
 
-    await new Promise((r) => setTimeout(r, 700))
-    const reply: ChatMsg = {
-      id: crypto.randomUUID(),
-      role: "assistant",
-      content: images.length
-        ? `J'ai reçu ${images.length} image(s)${text ? ` et ton message: « ${text} »` : ""}. (POV mock, pas d'agent réel pour l'instant.)`
-        : `Bien reçu. Côté POV je simule l'agent Comie. Prochaine étape: brancher le backend sur ton VPS.\n\nTu as dit: « ${text} ».`,
-      at: new Date().toISOString(),
+    try {
+      let content: string
+      if (hasApi) {
+        const token = await getToken()
+        const data = await apiFetch<{ content: string; model?: string }>("/v1/chat", {
+          method: "POST",
+          token,
+          body: { message: text || "(image)", images },
+        })
+        content = data.content
+      } else {
+        await new Promise((r) => setTimeout(r, 700))
+        content = images.length
+          ? `J'ai reçu ${images.length} image(s)${text ? ` et ton message: « ${text} »` : ""}. (mock local, API non configurée.)`
+          : `Bien reçu (mock local). Configure NEXT_PUBLIC_API_URL pour le backend VPS.\n\nTu as dit: « ${text} ».`
+      }
+      const reply: ChatMsg = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content,
+        at: new Date().toISOString(),
+      }
+      persist([...withUser, reply])
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erreur chat")
+      const reply: ChatMsg = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "Le backend n'a pas répondu. Réessaie dans un instant.",
+        at: new Date().toISOString(),
+      }
+      persist([...withUser, reply])
+    } finally {
+      setBusy(false)
     }
-    persist([...withUser, reply])
-    setBusy(false)
   }
 
   return (
@@ -122,7 +149,11 @@ export default function ChatPage() {
       <PageHeader
         label="Agent"
         title="Chat"
-        subtitle="UX proche de Comie (upload images en éventail). Réponses mock locales."
+        subtitle={
+          hasApi
+            ? "Upload images + agent Nebius/DeepSeek via le backend VPS."
+            : "Upload images. API non configurée: réponses mock locales."
+        }
         actions={
           <Button
             variant="ghost"

@@ -40,3 +40,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Private Devin handoff (secrets)
+DEVIN_HANDOFF.md
+*_HANDOFF*.md
+
+# Private handoffs (secrets)
+STOCKFLOW_TEAM_HANDOFF.md
+DEVIN_HANDOFF.md
+*_HANDOFF*.md
