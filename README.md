@@ -14,7 +14,9 @@ Front Next.js + backend FastAPI for a hackathon team. Inspired by [Comie](https:
 
 - **Clerk** login (same instance as Comie)
 - **Chat** + image upload → Nebius DeepSeek via backend
-- **Boutique** / **Stock** (team invite code) / **Workflows** templates
+- **Boutique**: shops + listings on one flow (click a shop → its annonces; button « Voir toutes les annonces »)
+- **Extension Chrome** (`extension/` + download `/stockflow-extension.zip`) to capture Vinted / Leboncoin cookies
+- **Stock** (team invite code) / **Workflows** templates
 
 ## Security
 

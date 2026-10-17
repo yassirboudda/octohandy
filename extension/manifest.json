@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Stockflow",
+  "version": "0.1.0",
+  "description": "Connecte tes comptes Vinted et Leboncoin à Stockflow (cookies / session).",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Stockflow",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "permissions": ["cookies", "storage", "webRequest"],
+  "host_permissions": [
+    "https://*.leboncoin.fr/*",
+    "https://*.vinted.fr/*",
+    "https://*.vinted.com/*",
+    "https://stockflow.amirelay.com/*",
+    "https://stockflow-nine-ashy.vercel.app/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://stockflow.amirelay.com/*",
+        "https://stockflow-nine-ashy.vercel.app/*",
+        "http://localhost:3000/*"
+      ],
+      "js": ["content/bridge.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

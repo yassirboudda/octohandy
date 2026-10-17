@@ -1,0 +1,48 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  width: 320px;
+  font: 13px/1.4 system-ui, sans-serif;
+  color: #0f172a;
+  background: #f8fafc;
+  padding: 12px;
+}
+.top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.brand { display: flex; align-items: center; gap: 8px; flex: 1; }
+.name { margin: 0; font-weight: 700; letter-spacing: -0.02em; }
+.sub { margin: 0; color: #64748b; font-size: 11px; }
+.icon-btn {
+  border: 1px solid #e2e8f0; background: #fff; border-radius: 8px;
+  width: 32px; height: 32px; cursor: pointer;
+}
+.card {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+  padding: 12px; margin-bottom: 8px;
+}
+.mk-head { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.logo {
+  width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center;
+  color: #fff; font-weight: 700; font-size: 12px;
+}
+.logo.vinted { background: #09b1ba; }
+.logo.lbc { background: #ec5a13; }
+.title { margin: 0; font-weight: 600; }
+.muted { margin: 2px 0 0; color: #64748b; font-size: 11px; }
+.dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 99px;
+  background: #94a3b8; margin-left: 4px; vertical-align: middle;
+}
+.dot.green { background: #10b981; }
+.dot.red { background: #ef4444; }
+.dot.amber { background: #f59e0b; }
+.btn {
+  width: 100%; border: 0; border-radius: 10px; padding: 9px 12px;
+  font-weight: 600; cursor: pointer; background: #e2e8f0;
+}
+.btn.primary { background: #0f172a; color: #fff; }
+.msg {
+  margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; font-size: 12px;
+  background: #ecfdf5; color: #047857;
+}
+.msg.err { background: #fef2f2; color: #b91c1c; }
+.msg.hidden { display: none; }

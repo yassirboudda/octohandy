@@ -6,7 +6,11 @@ class Settings(BaseSettings):
 
     host: str = "127.0.0.1"
     port: int = 3000
-    cors_origins: str = "https://stockflow-nine-ashy.vercel.app,http://localhost:3000"
+    cors_origins: str = (
+        "https://stockflow.amirelay.com,"
+        "https://stockflow-nine-ashy.vercel.app,"
+        "http://localhost:3000"
+    )
     clerk_secret_key: str = ""
     clerk_publishable_key: str = ""
     clerk_jwks_url: str = "https://clerk.amirelay.com/.well-known/jwks.json"

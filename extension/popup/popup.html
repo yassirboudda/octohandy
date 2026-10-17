@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Stockflow</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">
+        <img src="../icons/icon48.png" alt="" width="28" height="28" />
+        <div>
+          <p class="name">stockflow</p>
+          <p class="sub" id="state">Chargement…</p>
+        </div>
+      </div>
+      <button class="icon-btn" id="openDash" title="Ouvrir Boutique">↗</button>
+    </header>
+
+    <section class="card" data-mk="vinted">
+      <div class="mk-head">
+        <span class="logo vinted">V</span>
+        <div>
+          <p class="title">Vinted <span class="dot" data-dot></span></p>
+          <p class="muted" data-line>…</p>
+        </div>
+      </div>
+      <button class="btn primary" data-connect>Connecter</button>
+    </section>
+
+    <section class="card" data-mk="leboncoin">
+      <div class="mk-head">
+        <span class="logo lbc">lbc</span>
+        <div>
+          <p class="title">Leboncoin <span class="dot" data-dot></span></p>
+          <p class="muted" data-line>…</p>
+        </div>
+      </div>
+      <button class="btn primary" data-connect>Connecter</button>
+    </section>
+
+    <p id="msg" class="msg hidden"></p>
+    <script src="popup.js"></script>
+  </body>
+</html>

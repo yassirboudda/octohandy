@@ -7,6 +7,7 @@ import {
   Menu,
   MessageSquareText,
   Package,
+  Puzzle,
   Store,
   Workflow,
   X,
@@ -21,6 +22,7 @@ const nav = [
   { href: "/dashboard/chat", label: "Chat", icon: MessageSquareText },
   { href: "/dashboard/shops", label: "Boutique", icon: Store },
   { href: "/dashboard/stock", label: "Stock", icon: Package },
+  { href: "/dashboard/extension", label: "Extension", icon: Puzzle },
   { href: "/dashboard/workflows", label: "Workflows", icon: Workflow },
 ]
 
@@ -97,7 +99,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-6 pb-24 lg:pb-8">{children}</main>
 
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border/70 bg-white/85 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]">
-        <div className="grid grid-cols-5 gap-1 px-2 py-2">
+        <div className="grid grid-cols-6 gap-1 px-1 py-2">
           {nav.map((n) => (
             <Link
               key={n.href}

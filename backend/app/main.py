@@ -27,15 +27,35 @@ app.add_middleware(
 
 # In-memory POV store (replace with DB later)
 _shops: dict[str, list[dict[str, Any]]] = {}
+_listings: dict[str, list[dict[str, Any]]] = {}
 _stock: dict[str, list[dict[str, Any]]] = {}
 _teams: dict[str, dict[str, Any]] = {}  # code -> team
+_ext_tokens: dict[str, dict[str, Any]] = {}  # sfx_… -> {user_id, name, createdAt}
 _jwks_cache: dict[str, Any] = {"at": 0.0, "keys": []}
 
 
 def _default_shops() -> list[dict[str, Any]]:
     return [
-        {"id": "s1", "marketplace": "vinted", "displayName": "lola_du75", "status": "connected", "listingCount": 42},
-        {"id": "s2", "marketplace": "leboncoin", "displayName": "Leboncoin", "status": "expired", "listingCount": 8},
+        {"id": "s1", "marketplace": "vinted", "displayName": "lola_du75", "status": "connected", "listingCount": 6},
+        {"id": "s2", "marketplace": "leboncoin", "displayName": "Leboncoin", "status": "connected", "listingCount": 4},
+    ]
+
+
+def _default_listings() -> list[dict[str, Any]]:
+    def day(n: int) -> str:
+        return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - n * 86400))
+
+    return [
+        {"id": "l1", "shopId": "s1", "marketplace": "vinted", "title": "Masque Halloween LED", "price": 12, "status": "active", "views": 48, "favorites": 6, "updatedAt": day(0), "url": "https://www.vinted.fr"},
+        {"id": "l2", "shopId": "s1", "marketplace": "vinted", "title": "Veste jean vintage", "price": 35, "status": "active", "views": 120, "favorites": 18, "updatedAt": day(1), "url": "https://www.vinted.fr"},
+        {"id": "l3", "shopId": "s1", "marketplace": "vinted", "title": "Sneakers blanches 40", "price": 28, "status": "reserved", "views": 90, "favorites": 11, "updatedAt": day(2), "url": "https://www.vinted.fr"},
+        {"id": "l4", "shopId": "s1", "marketplace": "vinted", "title": "Sac bandoulière cuir", "price": 42, "status": "active", "views": 33, "favorites": 4, "updatedAt": day(3), "url": "https://www.vinted.fr"},
+        {"id": "l5", "shopId": "s1", "marketplace": "vinted", "title": "Pull oversize beige", "price": 18, "status": "sold", "views": 210, "favorites": 27, "updatedAt": day(5), "url": "https://www.vinted.fr"},
+        {"id": "l6", "shopId": "s1", "marketplace": "vinted", "title": "Montre minimaliste", "price": 55, "status": "active", "views": 67, "favorites": 9, "updatedAt": day(4), "url": "https://www.vinted.fr"},
+        {"id": "l7", "shopId": "s2", "marketplace": "leboncoin", "title": "Lampe design scandinave", "price": 45, "status": "active", "views": 22, "favorites": 3, "updatedAt": day(0), "url": "https://www.leboncoin.fr"},
+        {"id": "l8", "shopId": "s2", "marketplace": "leboncoin", "title": "Fauteuil velours vert", "price": 120, "status": "active", "views": 41, "favorites": 7, "updatedAt": day(2), "url": "https://www.leboncoin.fr"},
+        {"id": "l9", "shopId": "s2", "marketplace": "leboncoin", "title": "Lot déco Halloween", "price": 25, "status": "reserved", "views": 15, "favorites": 2, "updatedAt": day(1), "url": "https://www.leboncoin.fr"},
+        {"id": "l10", "shopId": "s2", "marketplace": "leboncoin", "title": "Console TV bois", "price": 90, "status": "active", "views": 58, "favorites": 5, "updatedAt": day(6), "url": "https://www.leboncoin.fr"},
     ]
 
 
@@ -45,6 +65,13 @@ def _default_stock(owner: str) -> list[dict[str, Any]]:
         {"id": "i2", "title": "Veste jean vintage", "qty": 1, "price": 35, "marketplace": "vinted", "ownerLabel": owner},
         {"id": "i3", "title": "Lampe design", "qty": 2, "price": 45, "marketplace": "leboncoin", "ownerLabel": owner},
     ]
+
+
+def _sync_listing_counts(uid: str) -> None:
+    shops = _shops.setdefault(uid, _default_shops())
+    listings = _listings.setdefault(uid, _default_listings())
+    for shop in shops:
+        shop["listingCount"] = sum(1 for l in listings if l.get("shopId") == shop["id"])
 
 
 async def _jwks() -> list[dict[str, Any]]:
@@ -64,6 +91,14 @@ async def require_user(authorization: str | None = Header(default=None)) -> dict
     if not authorization or not authorization.lower().startswith("bearer "):
         raise HTTPException(401, "Missing bearer token")
     token = authorization.split(" ", 1)[1].strip()
+
+    # Extension long-lived token (sfx_…)
+    if token.startswith("sfx_"):
+        meta = _ext_tokens.get(token)
+        if not meta:
+            raise HTTPException(401, "Unknown extension token")
+        return {"user_id": meta["user_id"], "via": "extension", "claims": {}}
+
     try:
         header = jwt.get_unverified_header(token)
         keys = await _jwks()
@@ -86,7 +121,7 @@ async def require_user(authorization: str | None = Header(default=None)) -> dict
     sub = claims.get("sub")
     if not sub:
         raise HTTPException(401, "No subject")
-    return {"user_id": sub, "claims": claims}
+    return {"user_id": sub, "via": "clerk", "claims": claims}
 
 
 @app.get("/health")
@@ -109,9 +144,97 @@ async def me(user: dict[str, Any] = Depends(require_user)):
 @app.get("/v1/shops")
 async def list_shops(user: dict[str, Any] = Depends(require_user)):
     uid = user["user_id"]
-    if uid not in _shops:
-        _shops[uid] = _default_shops()
+    _sync_listing_counts(uid)
     return {"shops": _shops[uid]}
+
+
+@app.get("/v1/listings")
+async def list_listings(shopId: str | None = None, user: dict[str, Any] = Depends(require_user)):
+    uid = user["user_id"]
+    listings = _listings.setdefault(uid, _default_listings())
+    if shopId:
+        listings = [l for l in listings if l.get("shopId") == shopId]
+    return {"listings": listings}
+
+
+@app.get("/v1/shops/{shop_id}/listings")
+async def shop_listings(shop_id: str, user: dict[str, Any] = Depends(require_user)):
+    uid = user["user_id"]
+    listings = _listings.setdefault(uid, _default_listings())
+    return {"listings": [l for l in listings if l.get("shopId") == shop_id]}
+
+
+class ExtPairIn(BaseModel):
+    name: str = "Chrome"
+
+
+@app.post("/v1/extension/pair")
+async def extension_pair(body: ExtPairIn, user: dict[str, Any] = Depends(require_user)):
+    if user.get("via") == "extension":
+        raise HTTPException(400, "Already an extension token")
+    token = f"sfx_{uuid.uuid4().hex}"
+    _ext_tokens[token] = {
+        "user_id": user["user_id"],
+        "name": body.name,
+        "createdAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    return {"token": token}
+
+
+@app.get("/v1/extension/me")
+async def extension_me(user: dict[str, Any] = Depends(require_user)):
+    return {"userId": user["user_id"], "via": user.get("via", "clerk")}
+
+
+class ExtSessionIn(BaseModel):
+    marketplace: Literal["vinted", "leboncoin"]
+    displayName: str
+    cookies: str
+    cookieNames: list[str] = Field(default_factory=list)
+    bearer: str | None = None
+    csrf: str | None = None
+    meta: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.post("/v1/extension/session")
+async def extension_session(body: ExtSessionIn, user: dict[str, Any] = Depends(require_user)):
+    """Receive marketplace cookies from the Chrome extension (stored in memory for POV)."""
+    uid = user["user_id"]
+    shops = _shops.setdefault(uid, _default_shops())
+    _listings.setdefault(uid, _default_listings())
+
+    if not body.cookies.strip():
+        raise HTTPException(400, "cookies empty")
+
+    existing = next((s for s in shops if s.get("marketplace") == body.marketplace), None)
+    # Do not echo full cookies back to clients; keep server-side only.
+    creds = {
+        "cookies": body.cookies,
+        "cookieNames": body.cookieNames,
+        "bearer": body.bearer,
+        "csrf": body.csrf,
+        "meta": {**body.meta, "receivedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())},
+    }
+    if existing:
+        existing["displayName"] = body.displayName or existing["displayName"]
+        existing["status"] = "connected"
+        existing["credentials"] = creds
+        shop = existing
+    else:
+        shop = {
+            "id": f"s-{uuid.uuid4().hex[:8]}",
+            "marketplace": body.marketplace,
+            "displayName": body.displayName,
+            "status": "connected",
+            "listingCount": 0,
+            "credentials": creds,
+        }
+        shops.append(shop)
+    _sync_listing_counts(uid)
+    # Return shop without secrets
+    safe = {k: v for k, v in shop.items() if k != "credentials"}
+    safe["hasCredentials"] = True
+    return {"ok": True, "shop": safe}
 
 
 class ShopIn(BaseModel):
