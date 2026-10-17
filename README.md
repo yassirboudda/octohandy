@@ -4,7 +4,8 @@ Front Next.js + backend FastAPI for a hackathon team. Inspired by [Comie](https:
 
 ## Live
 
-- Front: https://stockflow-nine-ashy.vercel.app
+- Front: https://stockflow.amirelay.com (primary)
+- Fallback: https://stockflow-nine-ashy.vercel.app
 - Repo: https://github.com/yassirboudda/hackathon
 - API (Hetzner): http://178.104.100.35/health (also `:8080/health`)
 - Browser calls API via same-origin `/backend/*` (Next rewrite → VPS)
