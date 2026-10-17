@@ -41,6 +41,9 @@ export function PocWall({ currentEmail, access }: { currentEmail: string | null;
             <dt className="text-muted-foreground">Mot de passe</dt>
             <dd className="font-mono break-all select-all">{access.judgePassword || "(communiqué par l'équipe Stockflow)"}</dd>
           </dl>
+          <p className="text-xs text-muted-foreground mt-3">
+            Indice : le mot de passe est le nom du sponsor de l&apos;événement.
+          </p>
         </div>
         {currentEmail && (
           <p className="text-xs text-muted-foreground mt-4">
