@@ -4,7 +4,8 @@ import { AnimatePresence, motion } from "framer-motion"
 import { ChevronDown, MapPin, Star } from "lucide-react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
-import { cn } from "@/components/ui"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { BoxImg } from "@/components/oh/box"
 import { ChatBar } from "@/components/oh/chat-bar"
 import { Octopus } from "@/components/oh/octopus"
@@ -14,7 +15,7 @@ import { FAMILIES, PRODUCTS, PROFILE, familyQty, mkName, productQty, type Family
 
 export default function ProfilePage() {
   return (
-    <OhShell bg="paper">
+    <OhShell>
       <Profile />
     </OhShell>
   )
@@ -74,9 +75,9 @@ function Profile() {
             <Stat n={PROFILE.sold} label={t.profile.sold} />
             <Stat n={PROFILE.followers} label={t.profile.followers} />
           </div>
-          <button type="button" className="oh-btn oh-btn-line sm:col-start-2 sm:justify-self-start" onClick={() => toast(t.profile.editDemo)}>
+          <Button variant="outline" className="sm:col-start-2 sm:justify-self-start" onClick={() => toast(t.profile.editDemo)}>
             {t.profile.edit}
-          </button>
+          </Button>
           <Octopus className="hidden md:block absolute right-6 -bottom-6 w-28 opacity-95 pointer-events-none" label="" />
         </div>
       </section>
@@ -121,7 +122,7 @@ function Profile() {
                 transition={{ duration: 0.3 }}
                 className="mt-10"
               >
-                <h3 className="oh-serif text-2xl">{t.families[fam]}</h3>
+                <h3 className="text-xl font-semibold">{t.families[fam]}</h3>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {PRODUCTS.filter((p) => p.family === fam).map((p) => (
                     <ProductBox key={p.id} p={p} money={(n) => money(n, lang)} />
@@ -141,7 +142,7 @@ function Profile() {
 function Stat({ n, label }: { n: number; label: string }) {
   return (
     <div>
-      <p className="oh-serif text-2xl leading-none">{n.toLocaleString()}</p>
+      <p className="text-2xl font-semibold leading-none tabular-nums">{n.toLocaleString()}</p>
       <p className="text-sm text-[var(--ink-soft)] mt-1">{label}</p>
     </div>
   )
@@ -165,7 +166,7 @@ function ProductBox({ p, money }: { p: Product; money: (n: number) => string }) 
           </span>
         </span>
         <span className="text-right shrink-0">
-          <span className="oh-serif text-xl block">{money(p.price)}</span>
+          <span className="text-lg font-semibold block">{money(p.price)}</span>
           <ChevronDown size={18} className={cn("ml-auto mt-1 transition-transform text-[var(--ink-soft)]", open && "rotate-180")} />
         </span>
       </button>

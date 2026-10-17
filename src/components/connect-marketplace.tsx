@@ -4,16 +4,14 @@ import { CheckCircle2, ExternalLink, Loader2, RefreshCw, ShieldCheck } from "luc
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Button, MarketplaceLogo, Modal } from "@/components/ui"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { buttonVariants } from "@/components/ui/button"
 import type { Shop } from "@/lib/store"
 
 export const CONNECTABLE_MARKETPLACES = [
   { id: "vinted", name: "Vinted" },
-  { id: "leboncoin", name: "Leboncoin" },
   { id: "ebay", name: "eBay" },
   { id: "etsy", name: "Etsy" },
-  { id: "depop", name: "Depop" },
-  { id: "vestiaire", name: "Vestiaire Collective" },
-  { id: "wallapop", name: "Wallapop" },
   { id: "facebook_marketplace", name: "Facebook Marketplace" },
 ]
 
@@ -43,7 +41,8 @@ export function useMarketplaceOptions(request: Requester, enabled: boolean): Mar
         const known = new Map(CONNECTABLE_MARKETPLACES.map((marketplace) => [marketplace.id, marketplace.name]))
         const options = records.flatMap((record) => {
           const id = record.marketplace_id ?? record.id
-          if (!id) return []
+          // The backend catalog also documents marketplaces we don't connect to; only offer the handled ones.
+          if (!id || !known.has(id)) return []
           return [{ id, name: known.get(id) ?? record.name ?? id }]
         })
         if (options.length) setMarketplaces(options)
@@ -158,16 +157,17 @@ export function ConnectMarketplaceModal({
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {marketplaces.map((m) => (
-              <button
+              <Button
                 key={m.id}
                 type="button"
+                variant="secondary"
                 disabled={loading}
                 onClick={() => void start(m.id)}
-                className="flex flex-col items-center gap-2 rounded-xl border bg-white p-4 text-sm font-medium hover:border-primary hover:shadow-sm transition disabled:opacity-50"
+                className="h-auto flex-col gap-2 p-4 whitespace-normal"
               >
                 {loading && marketplace === m.id ? <Loader2 className="w-9 h-9 animate-spin text-muted-foreground" /> : <MarketplaceLogo marketplace={m.id} size={36} />}
                 {m.name}
-              </button>
+              </Button>
             ))}
           </div>
           <p className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -177,16 +177,16 @@ export function ConnectMarketplaceModal({
       ) : (
         <div className="space-y-3">
           {!session.opened && (
-            <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-              La page n&apos;a pas pu s&apos;ouvrir automatiquement. Ouvre la page de connexion dans le navigateur du bureau.
-            </p>
+            <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+              <AlertDescription className="text-amber-900">La page n&apos;a pas pu s&apos;ouvrir automatiquement. Ouvre la page de connexion dans le navigateur du bureau.</AlertDescription>
+            </Alert>
           )}
           <p className="text-sm text-muted-foreground">
             Connecte-toi à <strong>{name}</strong> dans la fenêtre ci-dessous
             {session.opened ? " (la page de connexion vient de s'ouvrir dans Chrome)" : ""}. Quand ta boutique
             s&apos;affiche, clique « C&apos;est connecté ».
           </p>
-          <div className="rounded-xl overflow-hidden border bg-black aspect-video">
+          <div className="rounded-lg overflow-hidden border bg-black aspect-video">
             <iframe
               src={session.url}
               title="Bureau distant OctoHandy"
@@ -197,10 +197,8 @@ export function ConnectMarketplaceModal({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs text-muted-foreground">Session valable jusqu&apos;à {expires}.</span>
             <div className="flex flex-wrap gap-2">
-              <a href={session.url} target="_blank" rel="noreferrer">
-                <Button variant="secondary" size="sm">
-                  <ExternalLink className="w-4 h-4" /> Plein écran
-                </Button>
+              <a href={session.url} target="_blank" rel="noreferrer" className={buttonVariants({ variant: "outline", size: "sm" })}>
+                <ExternalLink className="w-4 h-4" /> Plein écran
               </a>
               <Button variant="secondary" size="sm" onClick={() => marketplace && void start(marketplace)} loading={loading}>
                 <RefreshCw className="w-4 h-4" /> Nouvelle session

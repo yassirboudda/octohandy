@@ -38,9 +38,9 @@ export default function ShopDetailPage() {
           title="Boutique introuvable"
           text="Cette boutique n'existe pas dans cet espace. Retourne à Boutique."
           action={
-            <Link href="/dashboard/shops">
-              <Button size="sm">Retour boutiques</Button>
-            </Link>
+            <Button size="sm" asChild>
+              <Link href="/dashboard/shops">Retour boutiques</Link>
+            </Button>
           }
         />
       </Card>
@@ -64,16 +64,16 @@ export default function ShopDetailPage() {
         }
         actions={
           <>
-            <Link href="/dashboard/shops">
-              <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/dashboard/shops">
                 <ArrowLeft className="w-3.5 h-3.5" /> Boutiques
-              </Button>
-            </Link>
-            <Link href="/dashboard/shops/all">
-              <Button variant="secondary" size="sm">
+              </Link>
+            </Button>
+            <Button variant="secondary" size="sm" asChild>
+              <Link href="/dashboard/shops/all">
                 <Tags className="w-3.5 h-3.5" /> Voir toutes les annonces
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </>
         }
       />

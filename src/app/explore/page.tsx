@@ -4,7 +4,8 @@ import { AnimatePresence, motion } from "framer-motion"
 import { Camera, ExternalLink, Search, X } from "lucide-react"
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react"
 import { toast } from "sonner"
-import { cn } from "@/components/ui"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { BoxImg } from "@/components/oh/box"
 import { ChatBar } from "@/components/oh/chat-bar"
 import { FilterMenu } from "@/components/oh/filter-menu"
@@ -34,7 +35,7 @@ const noop = () => () => {}
 
 export default function ExplorePage() {
   return (
-    <OhShell bg="sky">
+    <OhShell>
       <Explore />
     </OhShell>
   )
@@ -103,7 +104,7 @@ function Explore() {
 
   return (
     <main className="pb-44">
-      <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-2 sm:pt-6">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-4 sm:pt-8">
         <h1 className="sr-only">{t.explore.title}</h1>
         <form
           className="oh-search flex items-center gap-2 pl-4 pr-1.5 py-1.5"
@@ -119,7 +120,7 @@ function Explore() {
             onChange={(e) => setDraft(e.target.value)}
             placeholder={t.explore.placeholder}
             aria-label={t.explore.placeholder}
-            className="flex-1 min-w-0 bg-transparent outline-none text-lg text-[var(--ink)] placeholder:text-[var(--ink-soft)] py-2.5"
+            className="flex-1 min-w-0 bg-transparent outline-none text-base text-[var(--ink)] placeholder:text-[var(--ink-soft)] py-2"
           />
           {draft && (
             <button type="button" className="oh-icon-btn" aria-label={t.explore.clear} onClick={() => run("")}>
@@ -152,9 +153,9 @@ function Explore() {
             onToggle={(v) => setFilters((f) => ({ ...f, maxPrice: f.maxPrice === v ? null : v }))}
           />
           {filters !== NO_FILTERS && (
-            <button type="button" className="text-sm underline underline-offset-4 text-[var(--ink-soft)] px-2" onClick={() => setFilters(NO_FILTERS)}>
+            <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setFilters(NO_FILTERS)}>
               {t.explore.clear}
-            </button>
+            </Button>
           )}
         </div>
 
@@ -233,7 +234,7 @@ function Explore() {
               <div className="sticky top-0 z-10 oh-drawer-head flex items-center gap-3 px-5 py-4">
                 <BoxImg name={`mk-${open.id}-open`} width={80} className="w-16 h-auto" alt="" />
                 <div className="min-w-0">
-                  <h2 className="oh-serif text-2xl leading-tight">{open.name}</h2>
+                  <h2 className="text-lg font-semibold leading-tight">{open.name}</h2>
                   <p className="text-sm text-[var(--ink-soft)]">{openOffers.length ? t.explore.found(openOffers.length) : t.explore.none}</p>
                 </div>
                 <button type="button" className="oh-icon-btn ml-auto" onClick={() => setOpenId(null)} aria-label={t.explore.close}>
@@ -259,13 +260,15 @@ function Explore() {
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="oh-serif text-2xl">{money(o.price, lang)}</p>
+                        <p className="text-lg font-semibold">{money(o.price, lang)}</p>
                         {o.retail && o.retail > o.price ? <p className="text-xs text-[var(--ink-soft)] line-through">{t.explore.retail(o.retail)}</p> : null}
                       </div>
                     </div>
-                    <a href={mkSearchUrl(o.marketplace, `${o.brand} ${o.title}`)} target="_blank" rel="noreferrer" className="oh-btn oh-btn-line w-full mt-3 justify-center">
-                      {t.explore.view(open.name)} <ExternalLink size={15} />
-                    </a>
+                    <Button asChild variant="outline" className="w-full mt-3">
+                      <a href={mkSearchUrl(o.marketplace, `${o.brand} ${o.title}`)} target="_blank" rel="noreferrer">
+                        {t.explore.view(open.name)} <ExternalLink />
+                      </a>
+                    </Button>
                   </li>
                 ))}
               </ul>

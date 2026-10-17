@@ -4,7 +4,8 @@ import { useAuth, useOrganization } from "@clerk/nextjs"
 import { Copy, Link2, Users } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
-import { Badge, Button, Card, Input, PageHeader, Textarea } from "@/components/ui"
+import { Badge, Button, Card, Field, Input, PageHeader, Textarea } from "@/components/ui"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { apiFetch } from "@/lib/api"
 import { useWorkspaceResource } from "@/lib/use-workspace-resource"
 
@@ -45,26 +46,24 @@ function AgentProfileCard() {
     <Card className="p-5 mb-5">
       <h2 className="font-semibold">Mon profil (lu par l&apos;agent)</h2>
       <p className="text-sm text-muted-foreground mt-1 mb-4">Ton profil reste personnel, même dans une organisation.</p>
-      {error && <p role="alert" className="text-sm text-red-700 mb-3">Impossible de charger le profil : {error.message}</p>}
-      <div className="space-y-3">
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium">Nom affiché</span>
+      {error && <p role="alert" className="text-sm text-destructive mb-3">Impossible de charger le profil : {error.message}</p>}
+      <div className="space-y-4">
+        <Field label="Nom affiché">
           <Input
             value={displayName}
             onChange={(event) => setNameDraft(event.target.value)}
             disabled={isLoading || saving}
             placeholder="Ton nom"
           />
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium">Préférences pour l&apos;agent</span>
+        </Field>
+        <Field label="Préférences pour l'agent">
           <Textarea
             value={notes}
             onChange={(event) => setNotesDraft(event.target.value)}
             disabled={isLoading || saving}
             placeholder="Ton, signature, habitudes…"
           />
-        </label>
+        </Field>
         <Button size="sm" loading={saving} disabled={isLoading} onClick={() => void saveProfile()}>
           Enregistrer le profil
         </Button>
@@ -133,7 +132,7 @@ export default function TeamPage() {
         <Card className="p-4 mb-5 space-y-2">
           <p className="text-sm font-medium">Lien valable 7 jours</p>
           <div className="flex flex-col sm:flex-row gap-2">
-            <code className="flex-1 min-w-0 break-all rounded-lg bg-muted/50 p-2 text-xs">{inviteUrl}</code>
+            <code className="flex-1 min-w-0 break-all rounded-md border bg-muted px-2.5 py-2 font-mono text-xs">{inviteUrl}</code>
             <Button variant="secondary" size="sm" onClick={() => void copyInvite()}>
               <Copy className="w-3.5 h-3.5" /> Copier
             </Button>
@@ -142,28 +141,37 @@ export default function TeamPage() {
       )}
       <Card className="p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Users className="w-4 h-4 text-secondary" />
+          <Users className="w-4 h-4 text-muted-foreground" />
           <h2 className="font-semibold">Membres</h2>
-          <Badge tone="blue">{members.length}</Badge>
+          <Badge>{members.length}</Badge>
         </div>
         {!members.length ? (
           <p className="text-sm text-muted-foreground">Chargement des membres…</p>
         ) : (
-          <ul className="divide-y divide-border/70">
-            {members.map((membership) => {
-              const publicUser = membership.publicUserData
-              const name = [publicUser?.firstName, publicUser?.lastName].filter(Boolean).join(" ")
-              return (
-                <li key={membership.id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{name || publicUser?.identifier || "Membre"}</p>
-                    {publicUser?.identifier && <p className="text-caption truncate">{publicUser.identifier}</p>}
-                  </div>
-                  <Badge>{membership.roleName}</Badge>
-                </li>
-              )
-            })}
-          </ul>
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="pl-0 text-muted-foreground">Membre</TableHead>
+                <TableHead className="text-muted-foreground">Identifiant</TableHead>
+                <TableHead className="pr-0 text-muted-foreground text-right">Rôle</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {members.map((membership) => {
+                const publicUser = membership.publicUserData
+                const name = [publicUser?.firstName, publicUser?.lastName].filter(Boolean).join(" ")
+                return (
+                  <TableRow key={membership.id}>
+                    <TableCell className="pl-0 font-medium">{name || publicUser?.identifier || "Membre"}</TableCell>
+                    <TableCell className="text-muted-foreground">{publicUser?.identifier}</TableCell>
+                    <TableCell className="pr-0 text-right">
+                      <Badge>{membership.roleName}</Badge>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
         )}
         {memberships?.hasNextPage && (
           <Button className="mt-4" variant="secondary" size="sm" onClick={() => void memberships.fetchNext()}>

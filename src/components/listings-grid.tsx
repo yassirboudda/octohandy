@@ -38,8 +38,8 @@ export function ListingsGrid({ listings, emptyText }: { listings: Listing[]; emp
             </div>
             <Badge tone={statusTone[l.status]}>{statusLabel[l.status]}</Badge>
           </div>
-          <p className="text-xl font-bold tracking-tight">{l.price.toFixed(0)} €</p>
-          <div className="flex items-center gap-3 text-caption">
+          <p className="text-xl font-semibold tracking-tight tabular-nums">{l.price.toFixed(0)} €</p>
+          <div className="flex items-center gap-3 text-caption tabular-nums">
             <span>{l.views ?? 0} vues</span>
             <span>{l.favorites ?? 0} favoris</span>
           </div>
@@ -49,7 +49,7 @@ export function ListingsGrid({ listings, emptyText }: { listings: Listing[]; emp
             </p>
           )}
           {l.url ? (
-            <a href={l.url} target="_blank" rel="noreferrer" className="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-secondary hover:underline">
+            <a href={l.url} target="_blank" rel="noreferrer" className="mt-auto inline-flex items-center gap-1.5 border-t pt-3 text-sm font-medium text-foreground hover:underline underline-offset-4">
               <ExternalLink className="w-3.5 h-3.5" /> Ouvrir sur {l.marketplace}
             </a>
           ) : null}

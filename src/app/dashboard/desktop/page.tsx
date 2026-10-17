@@ -4,6 +4,8 @@ import { Activity, Brain, Eye, ExternalLink, GraduationCap, MonitorSmartphone, R
 import { useState } from "react"
 import { toast } from "sonner"
 import { Badge, Button, Card, PageHeader, StatusDot } from "@/components/ui"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { buttonVariants } from "@/components/ui/button"
 import type { TeachSession } from "@/components/teach-workflow"
 import type { WorkflowRun } from "@/components/run-workflow"
 import { marketplaceName } from "@/components/connect-marketplace"
@@ -31,7 +33,7 @@ type DesktopStatus = {
 function Tile({ title, ok, detail, icon: Icon }: { title: string; ok: boolean | null; detail: string; icon: typeof Activity }) {
   return (
     <Card className="p-4 flex items-start gap-3">
-      <div className="rounded-xl bg-muted/60 p-2"><Icon className="w-4 h-4 text-secondary" /></div>
+      <div className="rounded-md bg-muted p-2"><Icon className="w-4 h-4" /></div>
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <StatusDot tone={ok === null ? "amber" : ok ? "green" : "red"} live={!!ok} />
@@ -84,7 +86,7 @@ export default function DesktopPage() {
       />
 
       {status.error ? (
-        <Card className="p-4 text-sm text-red-700">Statut indisponible : {status.error.message}</Card>
+        <Alert variant="destructive" className="mb-6"><AlertDescription>Statut indisponible : {status.error.message}</AlertDescription></Alert>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <Tile title="Bureau distant" ok={s ? s.gate : null} detail={s?.host ? `${s.host.replace("https://", "")} · noVNC, jeton signé 15 min` : "Chargement…"} icon={MonitorSmartphone} />
@@ -96,7 +98,7 @@ export default function DesktopPage() {
 
       {s?.screen && (
         <Card className="p-4 mb-6">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">À l&apos;écran {screenAt && `· ${screenAt}`}</p>
+          <p className="text-label mb-1">À l&apos;écran {screenAt && `· ${screenAt}`}</p>
           <p className="font-medium text-sm">{s.screen.window || "Bureau"}</p>
           {s.screen.excerpt && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{s.screen.excerpt}</p>}
         </Card>
@@ -105,7 +107,7 @@ export default function DesktopPage() {
       <Card className="p-5 mb-6">
         <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4 text-secondary" />
+            <Eye className="w-4 h-4 text-muted-foreground" />
             <p className="font-semibold">Ce que Screenpipe a vu (2 dernières minutes)</p>
           </div>
           <div className="flex items-center gap-2">
@@ -116,13 +118,13 @@ export default function DesktopPage() {
           </div>
         </div>
         {screen.error ? (
-          <p className="text-sm text-red-700">Screenpipe injoignable : {screen.error.message}</p>
+          <p className="text-sm text-destructive">Screenpipe injoignable : {screen.error.message}</p>
         ) : !screen.data ? (
           <p className="text-sm text-muted-foreground">Lecture…</p>
         ) : !screen.data.events.length ? (
           <p className="text-sm text-muted-foreground">Rien capturé sur les 2 dernières minutes (écran statique ou bureau inactif). Ouvre le bureau et bouge dans Chrome, puis relis.</p>
         ) : (
-          <ul className="space-y-1.5 text-sm">
+          <ul className="space-y-1.5 text-sm max-h-80 overflow-y-auto">
             {screen.data.events.map((e, i) => (
               <li key={`${e.t}-${i}`} className="flex gap-3">
                 <span className="text-xs text-muted-foreground tabular-nums shrink-0 pt-0.5">{e.t ? new Date(e.t).toLocaleTimeString("fr-FR") : "—"}</span>
@@ -138,12 +140,12 @@ export default function DesktopPage() {
 
       {desktopUrl && (
         <Card className="p-3 mb-6">
-          <div className="rounded-xl overflow-hidden border bg-black aspect-video">
+          <div className="rounded-lg overflow-hidden border bg-black aspect-video">
             <iframe src={desktopUrl} title="Bureau distant OctoHandy" className="w-full h-full" allow="clipboard-read; clipboard-write" />
           </div>
           <div className="flex justify-end mt-2">
-            <a href={desktopUrl} target="_blank" rel="noreferrer">
-              <Button variant="secondary" size="sm"><ExternalLink className="w-4 h-4" /> Plein écran</Button>
+            <a href={desktopUrl} target="_blank" rel="noreferrer" className={buttonVariants({ variant: "outline", size: "sm" })}>
+              <ExternalLink className="w-4 h-4" /> Plein écran
             </a>
           </div>
         </Card>
@@ -152,7 +154,7 @@ export default function DesktopPage() {
       <div className="grid lg:grid-cols-2 gap-4">
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-3">
-            <GraduationCap className="w-4 h-4 text-secondary" />
+            <GraduationCap className="w-4 h-4 text-muted-foreground" />
             <p className="font-semibold">Démonstrations apprises</p>
           </div>
           {!teach.data?.sessions?.length ? (
@@ -175,7 +177,7 @@ export default function DesktopPage() {
         </Card>
         <Card className="p-5">
           <div className="flex items-center gap-2 mb-3">
-            <Rocket className="w-4 h-4 text-secondary" />
+            <Rocket className="w-4 h-4 text-muted-foreground" />
             <p className="font-semibold">Exécutions de l&apos;agent (journal)</p>
           </div>
           {!runs.data?.runs?.length ? (

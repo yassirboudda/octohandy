@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge, Button, Card, EmptyState, MarketplaceLogo, PageHeader, StatusDot } from "@/components/ui"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ConnectMarketplaceModal } from "@/components/connect-marketplace"
 import type { Shop } from "@/lib/store"
 import { useWorkspaceResource } from "@/lib/use-workspace-resource"
 
-const mpUrl: Record<string, string> = { leboncoin: "https://www.leboncoin.fr", vinted: "https://www.vinted.fr" }
+const mpUrl: Record<string, string> = { vinted: "https://www.vinted.fr" }
 
 export default function ShopsPage() {
   const router = useRouter()
@@ -51,16 +52,16 @@ export default function ShopsPage() {
         title="Boutique"
         actions={
           <div className="flex flex-wrap gap-2">
-            <Link href="/dashboard/shops/all">
-              <Button variant="secondary">
+            <Button variant="secondary" asChild>
+              <Link href="/dashboard/shops/all">
                 <Tags className="w-4 h-4" /> Voir toutes les annonces
-              </Button>
-            </Link>
-            <Link href="/dashboard/extension">
-              <Button variant="secondary">
+              </Link>
+            </Button>
+            <Button variant="secondary" asChild>
+              <Link href="/dashboard/extension">
                 <Puzzle className="w-4 h-4" /> Extension cookies
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <Button onClick={() => openConnect()}>
               <MonitorSmartphone className="w-4 h-4" /> Connecter une marketplace
             </Button>
@@ -69,7 +70,7 @@ export default function ShopsPage() {
       />
 
       {error ? (
-        <Card className="p-4 text-sm text-red-700">Impossible de charger les boutiques : {error.message}</Card>
+        <Card className="p-4 text-sm text-destructive">Impossible de charger les boutiques : {error.message}</Card>
       ) : isLoading ? (
         <Card className="p-4 text-sm text-muted-foreground">Chargement des boutiques…</Card>
       ) : !shops.length ? (
@@ -77,84 +78,87 @@ export default function ShopsPage() {
           <EmptyState
             icon={<Store className="w-6 h-6" />}
             title="Aucune boutique"
-            text="Clique « Connecter une marketplace » : tu te connectes à Vinted, Leboncoin, eBay… dans le Chrome du bureau OctoHandy, et l&apos;agent travaille dans cette session."
+            text="Clique « Connecter une marketplace » : tu te connectes à Vinted, eBay, Etsy… dans le Chrome du bureau OctoHandy, et l&apos;agent travaille dans cette session."
             action={
-              <Link href="/dashboard/extension">
-                <Button>
+              <Button asChild>
+                <Link href="/dashboard/extension">
                   <Puzzle className="w-4 h-4" /> Installer l&apos;extension
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             }
           />
         </Card>
       ) : (
-        <div className="grid md:grid-cols-2 gap-4">
-          {shops.map((s) => {
-            const ok = s.status === "connected"
-            return (
-              <Card
-                key={s.id}
-                interactive
-                className="p-5"
-                onClick={() => openShop(s.id)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault()
-                    openShop(s.id)
-                  }
-                }}
-                role="link"
-                tabIndex={0}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="relative">
-                    <MarketplaceLogo marketplace={s.marketplace} size={48} />
-                    <span className="absolute -bottom-1 -right-1 rounded-full bg-white p-[3px] shadow">
-                      <StatusDot tone={ok ? "green" : "red"} live={ok} />
-                    </span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold truncate">{s.displayName}</p>
-                      <Badge tone={s.marketplace === "vinted" ? "teal" : s.marketplace === "leboncoin" ? "amber" : "slate"}>{s.marketplace}</Badge>
-                    </div>
-                    <p className={`text-xs mt-1.5 font-medium ${ok ? "text-emerald-700" : "text-red-600"}`}>
-                      {ok ? "Session valide" : "Session expirée"}
-                    </p>
-                    <p className="text-caption mt-1">{s.listingCount} annonces · clic pour ouvrir</p>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      openShop(s.id)
+        <Card className="py-1">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="pl-4 text-muted-foreground">Boutique</TableHead>
+                <TableHead className="text-muted-foreground">Session</TableHead>
+                <TableHead className="text-muted-foreground text-right">Annonces</TableHead>
+                <TableHead className="pr-4" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {shops.map((s) => {
+                const ok = s.status === "connected"
+                return (
+                  <TableRow
+                    key={s.id}
+                    className="cursor-pointer"
+                    onClick={() => openShop(s.id)}
+                    onKeyDown={(e) => {
+                      if (e.target !== e.currentTarget) return
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault()
+                        openShop(s.id)
+                      }
                     }}
+                    role="link"
+                    tabIndex={0}
                   >
-                    <Tags className="w-3.5 h-3.5" /> Voir les annonces
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap gap-2 mt-3" onClick={(e) => e.stopPropagation()}>
-                  <Button variant={ok ? "secondary" : "primary"} size="sm" onClick={() => openConnect(s.marketplace)}>
-                    <MonitorSmartphone className="w-4 h-4" /> {ok ? "Ouvrir le bureau" : "Reconnecter"}
-                  </Button>
-                  <Button variant="secondary" size="sm" onClick={(e) => void refresh(s.id, e)}>
-                    <RefreshCw className="w-3.5 h-3.5" /> Vérifier
-                  </Button>
-                  <a href={mpUrl[s.marketplace] ?? `https://www.${s.marketplace}.fr`} target="_blank" rel="noreferrer">
-                    <Button variant="ghost" size="sm">
-                      <ExternalLink className="w-3.5 h-3.5" /> Ouvrir
-                    </Button>
-                  </a>
-                </div>
-              </Card>
-            )
-          })}
-        </div>
+                    <TableCell className="pl-4 py-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <MarketplaceLogo marketplace={s.marketplace} size={32} />
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{s.displayName}</p>
+                          <Badge tone={s.marketplace === "vinted" ? "teal" : "slate"} className="mt-0.5">
+                            {s.marketplace}
+                          </Badge>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-2 text-sm">
+                        <StatusDot tone={ok ? "green" : "red"} live={ok} />
+                        <span className={ok ? "text-foreground" : "text-destructive"}>{ok ? "Session valide" : "Session expirée"}</span>
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{s.listingCount}</TableCell>
+                    <TableCell className="pr-4">
+                      <div className="flex justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="secondary" size="sm" onClick={() => openShop(s.id)}>
+                          <Tags className="w-3.5 h-3.5" /> Voir les annonces
+                        </Button>
+                        <Button variant={ok ? "secondary" : "primary"} size="sm" onClick={() => openConnect(s.marketplace)}>
+                          <MonitorSmartphone className="w-4 h-4" /> {ok ? "Ouvrir le bureau" : "Reconnecter"}
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={(e) => void refresh(s.id, e)}>
+                          <RefreshCw className="w-3.5 h-3.5" /> Vérifier
+                        </Button>
+                        <Button variant="ghost" size="sm" asChild>
+                          <a href={mpUrl[s.marketplace] ?? `https://www.${s.marketplace}.fr`} target="_blank" rel="noreferrer">
+                            <ExternalLink className="w-3.5 h-3.5" /> Ouvrir
+                          </a>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </Card>
       )}
       <ConnectMarketplaceModal
         key={`${connect.open}-${connect.marketplace ?? ""}`}

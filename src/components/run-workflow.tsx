@@ -3,7 +3,10 @@
 import { AlertTriangle, Check, ExternalLink, Loader2, MonitorSmartphone, Play, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Badge, Button, Field, Modal } from "@/components/ui"
+import { Badge, Button, Modal, Segmented } from "@/components/ui"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { buttonVariants } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 
 type Requester = <R>(path: string, options?: { method?: string; body?: unknown }) => Promise<R>
 
@@ -195,29 +198,30 @@ export function RunWorkflowModal({
             </p>
           </div>
           {plan.ask_user && (
-            <p className="text-sm rounded-lg border border-amber-200 bg-amber-50 p-3 flex gap-2">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" /> {plan.ask_user}
-            </p>
+            <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+              <AlertTriangle />
+              <AlertDescription className="text-amber-900">{plan.ask_user}</AlertDescription>
+            </Alert>
           )}
-          <Field label="Mode d'exécution">
-            <div className="flex flex-wrap gap-2">
-              <Button variant={mode === "assisted" ? "primary" : "secondary"} size="sm" onClick={() => setMode("assisted")}>
-                Assistance, sans clic automatique
-              </Button>
-              <Button variant={mode === "auto_click" ? "primary" : "secondary"} size="sm" onClick={() => setMode("auto_click")}>
-                Clics après validation
-              </Button>
-            </div>
-          </Field>
+          <div className="grid gap-1.5">
+            <span className="text-sm font-medium leading-none">Mode d&apos;exécution</span>
+            <Segmented
+              value={mode}
+              onChange={setMode}
+              options={[
+                { value: "assisted", label: "Assistance, sans clic automatique" },
+                { value: "auto_click", label: "Clics après validation" },
+              ]}
+            />
+          </div>
           <p className="text-xs text-muted-foreground">Seules les actions cochées seront exécutées, après ton approbation.</p>
           <ul className="space-y-2">
             {plan.actions.map((action, index) => (
-              <li key={`${action.tool}-${index}`} className="rounded-xl border p-3 flex gap-3 items-start">
-                <input
-                  type="checkbox"
-                  className="mt-1"
+              <li key={`${action.tool}-${index}`} className="rounded-lg border p-3 flex gap-3 items-start">
+                <Checkbox
+                  className="mt-0.5"
                   checked={selected.includes(index)}
-                  onChange={(e) => setSelected(e.target.checked ? [...selected, index] : selected.filter((i) => i !== index))}
+                  onCheckedChange={(checked) => setSelected(checked === true ? [...selected, index] : selected.filter((i) => i !== index))}
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -227,7 +231,7 @@ export function RunWorkflowModal({
                       <span className="text-xs text-muted-foreground truncate">{JSON.stringify(action.args)}</span>
                     )}
                   </div>
-                  {action.preview && <p className="mt-2 text-sm whitespace-pre-wrap rounded-lg bg-slate-50 p-2">{action.preview}</p>}
+                  {action.preview && <p className="mt-2 text-sm whitespace-pre-wrap rounded-md bg-muted p-2">{action.preview}</p>}
                   {action.target_text && <p className="mt-1 text-xs text-muted-foreground">Cible à l&apos;écran : {action.target_text}</p>}
                   {action.input_text && <p className="mt-1 text-xs text-muted-foreground">Texte à saisir : {action.input_text}</p>}
                 </div>
@@ -261,9 +265,9 @@ export function RunWorkflowModal({
                   ? "Le bureau a exécuté les actions approuvées. Vérifie les résultats et les éléments reconnus à l'écran."
                   : "Mode assisté : les messages approuvés sont préparés dans le presse-papiers. Vérifie-les et envoie-les depuis le bureau."}
           </p>
-          <ol className="space-y-2 text-sm">
+          <ol className="space-y-2 text-sm max-h-96 overflow-y-auto">
             {run.log.map((entry, index) => (
-              <li key={`${entry.tool}-${index}`} className="rounded-xl border p-3">
+              <li key={`${entry.tool}-${index}`} className="rounded-lg border p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone="blue">{workflowToolLabel(entry.tool)}</Badge>
                   <Badge tone={entry.result === "assisted" || entry.result === "clicked" ? "teal" : entry.result === "skipped" ? "slate" : "amber"}>{resultLabel(entry.result)}</Badge>
@@ -283,16 +287,14 @@ export function RunWorkflowModal({
             ))}
           </ol>
           {desktopUrl && (
-            <div className="rounded-xl overflow-hidden border bg-black aspect-video">
+            <div className="rounded-lg overflow-hidden border bg-black aspect-video">
               <iframe src={desktopUrl} title="Bureau distant OctoHandy" className="w-full h-full" allow="clipboard-read; clipboard-write" />
             </div>
           )}
           <div className="flex justify-end gap-2">
             {desktopUrl && (
-              <a href={desktopUrl} target="_blank" rel="noreferrer">
-                <Button variant="secondary" size="sm">
-                  <ExternalLink className="w-4 h-4" /> Plein écran
-                </Button>
+              <a href={desktopUrl} target="_blank" rel="noreferrer" className={buttonVariants({ variant: "outline", size: "sm" })}>
+                <ExternalLink className="w-4 h-4" /> Plein écran
               </a>
             )}
             <Button size="sm" onClick={() => void close()}>

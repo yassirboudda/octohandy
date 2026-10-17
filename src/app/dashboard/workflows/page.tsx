@@ -3,6 +3,7 @@
 import { GraduationCap, Pause, Play, Rocket, Workflow } from "lucide-react"
 import { useState } from "react"
 import { Badge, Button, Card, PageHeader } from "@/components/ui"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { RunWorkflowModal } from "@/components/run-workflow"
 import { TeachWorkflowModal } from "@/components/teach-workflow"
 import { useWorkspaceResource } from "@/lib/use-workspace-resource"
@@ -48,9 +49,9 @@ export default function WorkflowsPage() {
           </Button>
         }
       />
-      {orgId && <p className="mb-4 text-sm text-secondary">partagé avec l&apos;équipe</p>}
+      {orgId && <p className="mb-4 text-sm text-muted-foreground">partagé avec l&apos;équipe</p>}
       {error ? (
-        <Card className="p-4 text-sm text-red-700">Impossible de charger les workflows : {error.message}</Card>
+        <Alert variant="destructive"><AlertDescription>Impossible de charger les workflows : {error.message}</AlertDescription></Alert>
       ) : isLoading ? (
         <Card className="p-4 text-sm text-muted-foreground">Chargement des workflows…</Card>
       ) : (
@@ -59,7 +60,7 @@ export default function WorkflowsPage() {
             <Card key={flow.id} className="p-5 flex flex-col">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2">
-                  <Workflow className="w-4 h-4 text-secondary" />
+                  <Workflow className="w-4 h-4 text-muted-foreground" />
                   <p className="font-semibold">{flow.title}</p>
                 </div>
                 <Badge tone={flow.tone}>{flow.marketplace}</Badge>
@@ -74,7 +75,7 @@ export default function WorkflowsPage() {
               <ol className="space-y-2 text-sm flex-1 mb-4">
                 {flow.steps.map((step, index) => (
                   <li key={step} className="flex gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[#0f172a] text-white text-[11px] font-semibold flex items-center justify-center shrink-0">
+                    <span className="size-6 rounded-full bg-muted text-foreground text-xs font-semibold flex items-center justify-center shrink-0">
                       {index + 1}
                     </span>
                     <span className="pt-0.5 text-muted-foreground">{step}</span>

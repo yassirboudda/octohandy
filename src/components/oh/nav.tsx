@@ -1,49 +1,42 @@
 "use client"
 
+import { motion } from "framer-motion"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/components/ui"
+import { Button } from "@/components/ui/button"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useT } from "@/lib/oh-i18n"
 import { Octopus } from "./octopus"
 
 export function OhNav() {
   const { t, lang, setLang } = useT()
-  const path = usePathname()
-  const link = (href: string, label: string) => (
-    <Link
-      href={href}
-      className={cn("oh-navlink", path === href && "oh-navlink-on")}
-      aria-current={path === href ? "page" : undefined}
-    >
-      {label}
-    </Link>
-  )
   return (
-    <header className="relative z-30">
-      <nav className="mx-auto max-w-6xl px-4 sm:px-6 h-16 sm:h-20 flex items-center gap-3">
+    <motion.header initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="relative z-30 border-b bg-background">
+      <nav className="mx-auto max-w-6xl px-4 sm:px-6 h-14 sm:h-16 flex items-center gap-3">
         <Link href="/" className="flex items-center gap-2 mr-auto" aria-label="OctoHandy">
-          <Octopus still className="w-9 sm:w-10" label="" />
-          <span className="oh-serif text-xl sm:text-[22px] text-[var(--ink)]">OctoHandy</span>
+          <Octopus still className="w-8 sm:w-9" label="" />
+          <span className="font-heading text-lg sm:text-xl text-foreground">OctoHandy</span>
         </Link>
-        <div className="hidden sm:flex items-center gap-1">
-          {link("/explore", t.nav.explore)}
-          {link("/profile", t.nav.shelf)}
-        </div>
-        <div className="oh-lang" role="group" aria-label="Language">
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          size="sm"
+          value={lang}
+          onValueChange={(v) => v && setLang(v as "en" | "fr")}
+          aria-label="Language"
+        >
           {(["en", "fr"] as const).map((l) => (
-            <button key={l} type="button" onClick={() => setLang(l)} aria-pressed={lang === l} className={cn(lang === l && "on")}>
+            <ToggleGroupItem key={l} value={l} className="text-xs font-semibold data-[state=on]:bg-butter data-[state=on]:text-foreground">
               {l.toUpperCase()}
-            </button>
+            </ToggleGroupItem>
           ))}
-        </div>
-        <Link href="/sign-in" className="oh-btn oh-btn-ink hidden sm:inline-flex">
-          {t.nav.signIn}
-        </Link>
+        </ToggleGroup>
+        <Button asChild variant="ghost" className="hidden sm:inline-flex">
+          <Link href="/sign-in">{t.nav.signIn}</Link>
+        </Button>
+        <Button asChild>
+          <Link href="/sign-up">{t.nav.start}</Link>
+        </Button>
       </nav>
-      <div className="sm:hidden flex gap-1 px-4 pb-2">
-        {link("/explore", t.nav.explore)}
-        {link("/profile", t.nav.shelf)}
-      </div>
-    </header>
+    </motion.header>
   )
 }

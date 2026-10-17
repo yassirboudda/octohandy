@@ -28,11 +28,11 @@ export default function AllListingsPage() {
         label="Marketplace"
         title="Toutes les annonces"
         actions={
-          <Link href="/dashboard/shops">
-            <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" asChild>
+            <Link href="/dashboard/shops">
               <ArrowLeft className="w-3.5 h-3.5" /> Retour boutiques
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         }
       />
       <div className="mb-5 flex flex-wrap items-center gap-3">
@@ -42,7 +42,7 @@ export default function AllListingsPage() {
         </Link>
       </div>
       {listingsResource.error || shopsResource.error ? (
-        <p className="text-sm text-red-700">Impossible de charger les annonces et boutiques.</p>
+        <p className="text-sm text-destructive">Impossible de charger les annonces et boutiques.</p>
       ) : (
         <ListingsGrid listings={visible} />
       )}

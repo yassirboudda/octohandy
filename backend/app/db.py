@@ -57,28 +57,6 @@ DEFAULT_WORKFLOWS = (
         "tone_notes": "Conseil factuel, sans pression",
     },
     {
-        "id": "lbc-first-msg",
-        "marketplace": "leboncoin",
-        "title": "Premier message → réponse type",
-        "steps": [
-            "Repérer un nouveau message d'acheteur",
-            "Identifier sa question sur la disponibilité, le prix ou un rendez-vous",
-            "Préparer une réponse selon les consignes du vendeur",
-        ],
-        "tone": "amber",
-        "trigger": "Un acheteur envoie un premier message",
-        "intent": {
-            "goal": "Préparer une réponse claire à la question de l'acheteur",
-            "actor": "seller",
-            "entities": {},
-            "success_criteria": "Le vendeur vérifie le texte avant son envoi",
-            "constraints": ["Ne pas inventer de disponibilité ni de conditions"],
-        },
-        "tools": [{"tool": "list_unread_messages"}, {"tool": "read_thread"}, {"tool": "send_message"}],
-        "guardrails": ["Ne pas envoyer de message sans approbation du vendeur"],
-        "tone_notes": "Poli, naturel et concis",
-    },
-    {
         "id": "multi-restock",
         "marketplace": "multi",
         "title": "Stock partagé → nouvelle annonce",
@@ -310,14 +288,6 @@ def migrate_default_workflow_copy(conn: sqlite3.Connection) -> None:
         "vinted-bump": (
             "Annonce dormante → baisse auto",
             ["Annonce sans vue depuis N jours", "Calcul d'une baisse X%", "Mise à jour prix + message optionnel"],
-        ),
-        "lbc-first-msg": (
-            "Premier message → réponse type",
-            [
-                "Nouveau message acheteur",
-                "Classement intent (dispo / prix / RDV)",
-                "Réponse template + plancher vendeur",
-            ],
         ),
         "multi-restock": (
             "Stock équipe → republish",

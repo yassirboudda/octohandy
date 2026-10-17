@@ -4,7 +4,8 @@ import { useUser } from "@clerk/nextjs"
 import { Minus, Package, Plus, Trash2 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
-import { Badge, Button, Card, EmptyState, Input, PageHeader } from "@/components/ui"
+import { Button, Card, EmptyState, Input, PageHeader } from "@/components/ui"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { StockItem } from "@/lib/store"
 import { useWorkspaceResource } from "@/lib/use-workspace-resource"
 
@@ -79,8 +80,8 @@ export default function StockPage() {
 
       <Card className="p-4 mb-4">
         <div className="flex flex-col sm:flex-row gap-2">
-          <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Nouvel article" className="flex-1" />
-          <Input value={qty} onChange={(event) => setQty(event.target.value)} type="number" min={1} className="w-24" />
+          <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Nouvel article" aria-label="Nouvel article" className="flex-1" />
+          <Input value={qty} onChange={(event) => setQty(event.target.value)} type="number" min={1} aria-label="Quantité" className="w-24" />
           <Button onClick={() => void addItem()}>
             <Plus className="w-4 h-4" /> Ajouter
           </Button>
@@ -88,7 +89,7 @@ export default function StockPage() {
       </Card>
 
       {error ? (
-        <Card className="p-4 text-sm text-red-700">Impossible de charger le stock : {error.message}</Card>
+        <Card className="p-4 text-sm text-destructive">Impossible de charger le stock : {error.message}</Card>
       ) : isLoading ? (
         <Card className="p-4 text-sm text-muted-foreground">Chargement du stock…</Card>
       ) : !items.length ? (
@@ -96,34 +97,47 @@ export default function StockPage() {
           <EmptyState icon={<Package className="w-6 h-6" />} title="Stock vide" text="Ajoute un article à l'inventaire." />
         </Card>
       ) : (
-        <div className="space-y-2">
-          {items.map((item) => (
-            <Card key={item.id} className="px-4 py-3 flex items-center gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="font-medium truncate">{item.title}</p>
-                <p className="text-caption truncate">
-                  {item.createdBy === user?.id
-                    ? "toi"
-                    : item.creatorName || (item.ownerLabel === "toi" ? "un membre" : item.ownerLabel)}
-                  {item.marketplace ? ` · ${item.marketplace}` : ""}
-                  {item.price != null ? ` · ${item.price} €` : ""}
-                </p>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="sm" aria-label={`Retirer une unité de ${item.title}`} onClick={() => void updateQuantity(item, -1)}>
-                  <Minus className="w-3.5 h-3.5" />
-                </Button>
-                <Badge tone="blue">×{item.qty}</Badge>
-                <Button variant="ghost" size="sm" aria-label={`Ajouter une unité de ${item.title}`} onClick={() => void updateQuantity(item, 1)}>
-                  <Plus className="w-3.5 h-3.5" />
-                </Button>
-                <Button variant="ghost" size="sm" aria-label={`Supprimer ${item.title}`} onClick={() => void removeItem(item)}>
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <Card className="py-1">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="pl-4 text-muted-foreground">Article</TableHead>
+                <TableHead className="text-muted-foreground">Propriétaire</TableHead>
+                <TableHead className="text-muted-foreground">Marketplace</TableHead>
+                <TableHead className="text-muted-foreground text-right">Prix</TableHead>
+                <TableHead className="pr-4 text-muted-foreground text-right">Quantité</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="pl-4 font-medium max-w-64 truncate">{item.title}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {item.createdBy === user?.id
+                      ? "toi"
+                      : item.creatorName || (item.ownerLabel === "toi" ? "un membre" : item.ownerLabel)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground capitalize">{item.marketplace || "—"}</TableCell>
+                  <TableCell className="text-right tabular-nums">{item.price != null ? `${item.price} €` : "—"}</TableCell>
+                  <TableCell className="pr-4">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="sm" aria-label={`Retirer une unité de ${item.title}`} onClick={() => void updateQuantity(item, -1)}>
+                        <Minus className="w-3.5 h-3.5" />
+                      </Button>
+                      <span className="min-w-8 text-center tabular-nums font-medium">{item.qty}</span>
+                      <Button variant="ghost" size="sm" aria-label={`Ajouter une unité de ${item.title}`} onClick={() => void updateQuantity(item, 1)}>
+                        <Plus className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" aria-label={`Supprimer ${item.title}`} onClick={() => void removeItem(item)} className="text-muted-foreground hover:text-destructive">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       )}
     </div>
   )

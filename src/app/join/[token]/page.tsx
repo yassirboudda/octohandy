@@ -65,14 +65,14 @@ export default function JoinPage({ params }: { params: Promise<{ token: string }
   }
 
   return (
-    <main className="min-h-dvh flex items-center justify-center p-4 bg-muted/30">
+    <main className="min-h-dvh flex items-center justify-center p-4 bg-background">
       <Card className="max-w-lg w-full p-8 text-center">
-        <Users className="w-8 h-8 mx-auto text-secondary mb-4" />
-        <h1 className="text-2xl font-bold">Invitation OctoHandy</h1>
+        <Users className="w-8 h-8 mx-auto text-muted-foreground mb-4" />
+        <h1 className="font-heading text-2xl">Invitation OctoHandy</h1>
         {loading ? (
           <p className="text-sm text-muted-foreground mt-3">Chargement de l&apos;invitation…</p>
         ) : error ? (
-          <p role="alert" className="text-sm text-red-700 mt-4">{error}</p>
+          <p role="alert" className="text-sm text-destructive mt-4">{error}</p>
         ) : invite ? (
           <>
             <p className="text-muted-foreground mt-3">

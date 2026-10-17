@@ -1,18 +1,21 @@
 "use client"
 
+import { MotionConfig } from "framer-motion"
 import type { ReactNode } from "react"
-import { cn } from "@/components/ui"
+import { cn } from "@/lib/utils"
 import { LangProvider } from "@/lib/oh-i18n"
 import { OhNav } from "./nav"
 
-export function OhShell({ children, bg = "sky", className }: { children: ReactNode; bg?: "sky" | "butter" | "paper"; className?: string }) {
+export function OhShell({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <LangProvider>
-      <div className={cn("oh min-h-dvh", `oh-bg-${bg}`, className)}>
-        <div className="oh-grain" aria-hidden />
-        <OhNav />
-        {children}
-      </div>
+      {/* Honour the OS "reduce motion" setting for every framer animation on public pages. */}
+      <MotionConfig reducedMotion="user">
+        <div className={cn("oh min-h-dvh bg-background", className)}>
+          <OhNav />
+          {children}
+        </div>
+      </MotionConfig>
     </LangProvider>
   )
 }

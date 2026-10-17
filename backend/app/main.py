@@ -72,7 +72,6 @@ def _build_chat_system_prompt() -> str:
 def _default_shops() -> list[dict[str, Any]]:
     return [
         {"id": "s1", "marketplace": "vinted", "displayName": "lola_du75", "status": "connected", "listingCount": 6},
-        {"id": "s2", "marketplace": "leboncoin", "displayName": "Leboncoin", "status": "connected", "listingCount": 4},
     ]
 
 
@@ -87,10 +86,6 @@ def _default_listings() -> list[dict[str, Any]]:
         {"id": "l4", "shopId": "s1", "marketplace": "vinted", "title": "Sac bandoulière cuir", "price": 42, "status": "active", "views": 33, "favorites": 4, "updatedAt": day(3), "url": "https://www.vinted.fr"},
         {"id": "l5", "shopId": "s1", "marketplace": "vinted", "title": "Pull oversize beige", "price": 18, "status": "sold", "views": 210, "favorites": 27, "updatedAt": day(5), "url": "https://www.vinted.fr"},
         {"id": "l6", "shopId": "s1", "marketplace": "vinted", "title": "Montre minimaliste", "price": 55, "status": "active", "views": 67, "favorites": 9, "updatedAt": day(4), "url": "https://www.vinted.fr"},
-        {"id": "l7", "shopId": "s2", "marketplace": "leboncoin", "title": "Lampe design scandinave", "price": 45, "status": "active", "views": 22, "favorites": 3, "updatedAt": day(0), "url": "https://www.leboncoin.fr"},
-        {"id": "l8", "shopId": "s2", "marketplace": "leboncoin", "title": "Fauteuil velours vert", "price": 120, "status": "active", "views": 41, "favorites": 7, "updatedAt": day(2), "url": "https://www.leboncoin.fr"},
-        {"id": "l9", "shopId": "s2", "marketplace": "leboncoin", "title": "Lot déco Halloween", "price": 25, "status": "reserved", "views": 15, "favorites": 2, "updatedAt": day(1), "url": "https://www.leboncoin.fr"},
-        {"id": "l10", "shopId": "s2", "marketplace": "leboncoin", "title": "Console TV bois", "price": 90, "status": "active", "views": 58, "favorites": 5, "updatedAt": day(6), "url": "https://www.leboncoin.fr"},
     ]
 
 
@@ -98,7 +93,6 @@ def _default_stock(owner: str) -> list[dict[str, Any]]:
     return [
         {"id": "i1", "title": "Masque Halloween", "qty": 3, "price": 12, "marketplace": "vinted", "ownerLabel": owner},
         {"id": "i2", "title": "Veste jean vintage", "qty": 1, "price": 35, "marketplace": "vinted", "ownerLabel": owner},
-        {"id": "i3", "title": "Lampe design", "qty": 2, "price": 45, "marketplace": "leboncoin", "ownerLabel": owner},
     ]
 
 
@@ -469,7 +463,7 @@ async def extension_me(user: dict[str, Any] = Depends(workspace_user)):
 
 
 class ExtSessionIn(BaseModel):
-    marketplace: Literal["vinted", "leboncoin"]
+    marketplace: Literal["vinted"]
     displayName: str
     cookies: str
     cookieNames: list[str] = Field(default_factory=list)
@@ -620,12 +614,8 @@ async def delete_shop(shop_id: str, user: dict[str, Any] = Depends(workspace_use
 
 LOGIN_URLS: dict[str, str | None] = {
     "vinted": "https://www.vinted.fr/",
-    "leboncoin": "https://auth.leboncoin.fr/login/",
     "ebay": "https://signin.ebay.fr/",
     "etsy": "https://www.etsy.com/fr/signin",
-    "depop": "https://www.depop.com/login/",
-    "vestiaire": "https://fr.vestiairecollective.com/login/",
-    "wallapop": "https://fr.wallapop.com/login",
     "amazon": "https://sellercentral.amazon.fr/",
     "facebook_marketplace": "https://www.facebook.com/login/?next=https%3A%2F%2Fwww.facebook.com%2Fmarketplace%2F",
 }
@@ -769,7 +759,7 @@ TEACH_TOOLS: list[str] = [
     "wait_for_event", "notify_seller",
 ]
 
-_WORKFLOW_TONES = {"vinted": "teal", "leboncoin": "amber"}
+_WORKFLOW_TONES = {"vinted": "teal"}
 
 
 def _teach_dict(row: Any) -> dict[str, Any]:
@@ -926,7 +916,7 @@ async def _llm_json(system: str, user_text: str, session_key: str) -> tuple[dict
 
 
 _TEACH_SYSTEM = """Tu es le compilateur de workflows d'OctoHandy, un assistant pour vendeurs sur les marketplaces
-(Vinted, Leboncoin, eBay…). On te donne la trace Screenpipe (texte OCR des écrans, titres de fenêtres, ordre
+(Vinted, eBay, Etsy…). On te donne la trace Screenpipe (texte OCR des écrans, titres de fenêtres, ordre
 chronologique) d'un vendeur qui vient de faire UNE FOIS, à la main, la tâche qu'il veut automatiser.
 Déduis le workflow réutilisable et réponds UNIQUEMENT avec un objet JSON valide (pas de markdown, pas de texte avant ou après) :
 {
@@ -1150,22 +1140,14 @@ async def teach_discard(teach_id: str, user: dict[str, Any] = Depends(workspace_
 
 INBOX_URLS: dict[str, str] = {
     "vinted": "https://www.vinted.fr/inbox",
-    "leboncoin": "https://www.leboncoin.fr/messages",
     "ebay": "https://mesg.ebay.fr/mesgweb/ViewMessages/0",
     "etsy": "https://www.etsy.com/fr/messages",
-    "depop": "https://www.depop.com/messages/",
-    "vestiaire": "https://fr.vestiairecollective.com/my-account/messages/",
-    "wallapop": "https://fr.wallapop.com/app/chat",
     "facebook_marketplace": "https://www.facebook.com/messages/",
 }
 LISTINGS_URLS: dict[str, str] = {
     "vinted": "https://www.vinted.fr/member/general/items",
-    "leboncoin": "https://www.leboncoin.fr/compte/part/mes-annonces",
     "ebay": "https://www.ebay.fr/sh/lst/active",
     "etsy": "https://www.etsy.com/your/shops/me/tools/listings",
-    "depop": "https://www.depop.com/products/",
-    "vestiaire": "https://fr.vestiairecollective.com/my-account/my-items/",
-    "wallapop": "https://fr.wallapop.com/app/catalog/published",
     "facebook_marketplace": "https://www.facebook.com/marketplace/you/selling",
 }
 _MESSAGE_TOOLS = {"list_unread_messages", "read_thread", "send_message", "send_offer", "list_offers", "list_favorites", "list_notifications"}

@@ -53,7 +53,7 @@ def test_personal_and_organization_workspaces_are_isolated(client):
         "/v1/stock",
         json={"title": "Personnel A", "qty": 1},
     ).json()["item"]
-    assert len(test_client.get("/v1/shops").json()["shops"]) == 2
+    assert len(test_client.get("/v1/shops").json()["shops"]) == 1  # demo seed: one Vinted shop
 
     assume_user(current_user, "user_a", "org_x")
     assert test_client.get("/v1/stock").json()["items"] == []

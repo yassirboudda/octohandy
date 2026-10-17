@@ -5,6 +5,7 @@ import { Check, Copy, Download, Puzzle, RefreshCw } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Badge, Button, Card, PageHeader, StatusDot } from "@/components/ui"
+import { buttonVariants } from "@/components/ui/button"
 import { apiFetch } from "@/lib/api"
 
 function useExtensionPresence() {
@@ -100,10 +101,8 @@ export default function ExtensionPage() {
         label="Connecteurs"
         title="Extension Chrome"
         actions={
-          <a href="/octohandy-extension.zip" download>
-            <Button size="sm">
-              <Download className="w-3.5 h-3.5" /> Télécharger l&apos;extension
-            </Button>
+          <a href="/octohandy-extension.zip" download className={buttonVariants({ size: "sm" })}>
+            <Download className="w-3.5 h-3.5" /> Télécharger l&apos;extension
           </a>
         }
       />
@@ -111,7 +110,7 @@ export default function ExtensionPage() {
       <div className="grid lg:grid-cols-2 gap-4 mb-6">
         <Card className="p-5 space-y-3">
           <div className="flex items-center gap-2">
-            <Puzzle className="w-5 h-5 text-secondary" />
+            <Puzzle className="w-5 h-5 text-muted-foreground" />
             <p className="font-semibold">Statut</p>
           </div>
           <p className="text-sm inline-flex items-center gap-2">
@@ -129,14 +128,12 @@ export default function ExtensionPage() {
             <Button size="sm" loading={pairing} onClick={() => void pair()}>
               <RefreshCw className="w-3.5 h-3.5" /> {paired ? "Réassocier" : "Associer"}
             </Button>
-            <a href="/octohandy-extension.zip" download>
-              <Button variant="secondary" size="sm">
-                <Download className="w-3.5 h-3.5" /> ZIP
-              </Button>
+            <a href="/octohandy-extension.zip" download className={buttonVariants({ variant: "outline", size: "sm" })}>
+              <Download className="w-3.5 h-3.5" /> ZIP
             </a>
           </div>
           {manualToken ? (
-            <div className="rounded-xl border border-border bg-muted/40 p-3 space-y-2">
+            <div className="rounded-lg bg-muted p-3 space-y-2">
               <p className="text-xs text-muted-foreground">Code manuel (colle-le dans le popup de l&apos;extension)</p>
               <code className="block text-xs break-all font-mono">{manualToken}</code>
               <Button variant="ghost" size="sm" onClick={() => void copy()}>
@@ -156,7 +153,7 @@ export default function ExtensionPage() {
               Chrome → <code className="text-xs">chrome://extensions</code> → active le mode développeur.
             </li>
             <li>« Charger l&apos;extension non empaquetée » → choisis le dossier dézippé.</li>
-            <li>Reviens ici, clique Associer, puis ouvre Vinted / Leboncoin et Connecter dans le popup.</li>
+            <li>Reviens ici, clique Associer, puis ouvre Vinted et Connecter dans le popup.</li>
           </ol>
         </Card>
       </div>
