@@ -1,35 +1,57 @@
-# Stockflow (hackathon POV)
+# Stockflow (hackathon)
 
-Front Next.js pour un nouveau hackathon, inspiré de [Comie](https://comie.amirelay.com):
+Front Next.js + backend FastAPI for a hackathon team. Inspired by [Comie](https://comie.amirelay.com).
 
-- **Clerk** (même instance / mêmes clés que Comie)
-- **Chat** avec upload d’images (réponses mock locales)
-- **Boutique** (comptes marketplace mock)
-- **Stock** + création d’équipe / code d’invitation / merge de stock
-- **Workflows** templates par marketplace (ex. Vinted favoris → offre discount)
+## Live
 
-Pas de backend dans ce repo. Les données POV sont en `localStorage`. Le vrai API ira sur un autre VPS plus tard.
+- Front: https://stockflow-nine-ashy.vercel.app
+- Repo: https://github.com/yassirboudda/hackathon
+- API (Hetzner): http://178.104.100.35/health (also `:8080/health`)
+- Browser calls API via same-origin `/backend/*` (Next rewrite → VPS)
 
-## Dev
+## Features
+
+- **Clerk** login (same instance as Comie)
+- **Chat** + image upload → Nebius DeepSeek via backend
+- **Boutique** / **Stock** (team invite code) / **Workflows** templates
+
+## Security
+
+**Never commit secrets** to this public repo. Put keys only in:
+
+- VPS `/home/deploy/apps/stockflow-api/.env`
+- Hermes `~/.config/hackathon/nebius.env`
+- Vercel project env vars
+- Private team handoff markdown (not in git)
+
+`backend/.env.example` is a template only.
+
+## Dev (front)
 
 ```bash
 cp .env.example .env.local
-# renseigner NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY + CLERK_SECRET_KEY (mêmes que Comie)
+# fill Clerk keys (from team handoff / Vercel)
 npm install
 npm run dev
 ```
 
-Ouvre http://localhost:3000
+## Backend (VPS)
 
-## Deploy
+Code: `backend/` in this repo. Deploy path on server: `/home/deploy/apps/stockflow-api`.
 
-Repo: https://github.com/yassirboudda/hackathon  
-POV: https://stockflow-nine-ashy.vercel.app
+```bash
+rsync -az -e "ssh -i ~/.ssh/hackathon_ed25519" \
+  --exclude '.venv' --exclude '.env' --exclude '__pycache__' \
+  ./backend/ deploy@178.104.100.35:/home/deploy/apps/stockflow-api/
+ssh -i ~/.ssh/hackathon_ed25519 deploy@178.104.100.35 \
+  'sudo systemctl restart stockflow-api && curl -sS http://127.0.0.1:3000/health'
+```
+
+Do not bind the app to `:8080` (reserved for NemoClaw OpenShell).
+
+## Deploy front
 
 ```bash
 git push origin main
-# Vercel redeploy auto via GitHub, ou:
-vercel --prod
+# Vercel auto-deploys from GitHub
 ```
-
-Dans Clerk (même instance que Comie), ajoute `https://stockflow-nine-ashy.vercel.app` aux allowed origins / redirect URLs (`/sign-in`, `/sign-up`, `/dashboard`).
