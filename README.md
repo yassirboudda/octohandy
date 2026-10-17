@@ -23,11 +23,13 @@ Ouvre http://localhost:3000
 
 ## Deploy
 
-Repo: https://github.com/yassirboudda/hackathon
+Repo: https://github.com/yassirboudda/hackathon  
+POV: https://stockflow-nine-ashy.vercel.app
 
 ```bash
 git push origin main
+# Vercel redeploy auto via GitHub, ou:
 vercel --prod
 ```
 
-Dans le dashboard Clerk, ajoute l’URL Vercel aux allowed origins / redirect URLs.
+Dans Clerk (même instance que Comie), ajoute `https://stockflow-nine-ashy.vercel.app` aux allowed origins / redirect URLs (`/sign-in`, `/sign-up`, `/dashboard`).
