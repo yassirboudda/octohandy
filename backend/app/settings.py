@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     nebius_base_url: str = "https://api.tokenfactory.nebius.com/v1"
     nebius_model: str = "deepseek-ai/DeepSeek-V4.1-Flash"
     hermes_gateway_url: str = "http://127.0.0.1:18789"
+    hermes_api_url: str = "http://127.0.0.1:8642/v1"
+    hermes_api_key: str = ""
+    hermes_model: str = "hermes-agent"
+    hermes_timeout: float = 120
 
     @property
     def cors_origin_list(self) -> list[str]:

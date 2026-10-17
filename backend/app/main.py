@@ -132,6 +132,8 @@ def health():
         "service": "stockflow-api",
         "backend": True,
         "model": settings.nebius_model,
+        "hermes": bool(settings.hermes_api_key),
+        "hermesUrl": settings.hermes_api_url,
         "hint": "API live on 127.0.0.1:3000 via nginx :80/:8080",
     }
 
@@ -348,21 +350,75 @@ class ChatIn(BaseModel):
 
 @app.post("/v1/chat")
 async def chat(body: ChatIn, user: dict[str, Any] = Depends(require_user)):
-    """Chat via Nebius Token Factory (DeepSeek). Falls back to mock if key missing."""
-    if not settings.nebius_api_key:
-        return {
-            "role": "assistant",
-            "content": f"(mock) Reçu: {body.message[:200]} — configure NEBIUS_API_KEY pour le vrai modèle.",
-            "model": "mock",
-        }
-
+    """Chat via Hermes, then Nebius Token Factory (DeepSeek), or a mock response."""
     system = (
         "Tu es Stockflow, assistant marketplace (Vinted / Leboncoin). "
         "Réponds en français, concis, utile pour stock, prix, messages clients et workflows."
     )
-    user_content: Any = body.message
+    hermes_user_content: Any = body.message
     if body.images:
-        user_content = [
+        hermes_user_content = [
+            {"type": "text", "text": body.message},
+            *[
+                {"type": "image_url", "image_url": {"url": image_url}}
+                for image_url in body.images[:4]
+            ],
+        ]
+    hermes_messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": hermes_user_content},
+    ]
+    hermes_error = None
+
+    if settings.hermes_api_key:
+        try:
+            async with httpx.AsyncClient(timeout=settings.hermes_timeout) as client:
+                response = await client.post(
+                    f"{settings.hermes_api_url.rstrip('/')}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {settings.hermes_api_key}",
+                        "X-Hermes-Session-Key": f"stockflow-{user['user_id']}",
+                    },
+                    json={
+                        "model": settings.hermes_model,
+                        "messages": hermes_messages,
+                        "stream": False,
+                    },
+                )
+            if response.status_code >= 400:
+                hermes_error = f"Hermes returned HTTP {response.status_code}"
+            else:
+                choice = response.json()["choices"][0]
+                finish_reason = choice.get("finish_reason")
+                if finish_reason in ("error", "cancelled"):
+                    hermes_error = f"Hermes finish_reason: {finish_reason}"
+                else:
+                    return {
+                        "role": "assistant",
+                        "content": choice["message"]["content"],
+                        "model": settings.hermes_model,
+                        "via": "hermes",
+                    }
+        except httpx.RequestError as e:
+            hermes_error = f"Hermes connection failed ({type(e).__name__})"
+        except Exception as e:
+            hermes_error = f"Hermes response invalid ({type(e).__name__})"
+        if hermes_error:
+            hermes_error = hermes_error[:200]
+
+    if not settings.nebius_api_key:
+        result = {
+            "role": "assistant",
+            "content": f"(mock) Reçu: {body.message[:200]} — configure NEBIUS_API_KEY pour le vrai modèle.",
+            "model": "mock",
+        }
+        if hermes_error:
+            result["hermesError"] = hermes_error
+        return result
+
+    nebius_user_content: Any = body.message
+    if body.images:
+        nebius_user_content = [
             {"type": "text", "text": body.message},
             *[{"type": "text", "text": f"[image attachée: {u[:80]}]"} for u in body.images[:4]],
         ]
@@ -371,7 +427,7 @@ async def chat(body: ChatIn, user: dict[str, Any] = Depends(require_user)):
         "model": settings.nebius_model,
         "messages": [
             {"role": "system", "content": system},
-            {"role": "user", "content": user_content},
+            {"role": "user", "content": nebius_user_content},
         ],
         "temperature": 0.4,
     }
@@ -386,7 +442,15 @@ async def chat(body: ChatIn, user: dict[str, Any] = Depends(require_user)):
                 raise HTTPException(502, f"Nebius error {r.status_code}: {r.text[:300]}")
             data = r.json()
             content = data["choices"][0]["message"]["content"]
-            return {"role": "assistant", "content": content, "model": settings.nebius_model}
+            result = {
+                "role": "assistant",
+                "content": content,
+                "model": settings.nebius_model,
+                "via": "nebius",
+            }
+            if hermes_error:
+                result["hermesError"] = hermes_error
+            return result
     except HTTPException:
         raise
     except Exception as e:

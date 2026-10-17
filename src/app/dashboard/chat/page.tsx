@@ -151,7 +151,7 @@ export default function ChatPage() {
         title="Chat"
         subtitle={
           hasApi
-            ? "Upload images + agent Nebius/DeepSeek via le backend VPS."
+            ? "Upload images + agent Hermes (NemoClaw · Nebius DeepSeek) via le backend VPS."
             : "Upload images. API non configurée: réponses mock locales."
         }
         actions={
