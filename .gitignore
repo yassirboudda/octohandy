@@ -53,3 +53,6 @@ DEVIN_HANDOFF.md
 
 # brainstorm mockups
 .superpowers/
+
+# Playwright MCP screenshots and test files
+.playwright-mcp/

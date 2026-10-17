@@ -1,5 +1,7 @@
 "use client"
 
+import type { UIMessage } from "ai"
+
 export type Shop = {
   id: string
   marketplace: string
@@ -11,7 +13,7 @@ export type Shop = {
 export type Listing = {
   id: string
   shopId: string
-  marketplace: "vinted" | "leboncoin"
+  marketplace: string
   title: string
   price: number
   status: "active" | "sold" | "reserved"
@@ -36,29 +38,22 @@ export type StockItem = {
   creatorName?: string | null
 }
 
-export type ChatMsg = {
-  id: string
-  role: "user" | "assistant"
-  content: string
-  images?: string[]
-  at: string
-}
+const EMPTY_CHAT: UIMessage[] = []
+const chatCache = new Map<string, UIMessage[]>()
 
-const EMPTY_CHAT: ChatMsg[] = []
-const chatCache = new Map<string, ChatMsg[]>()
-
-function chatKey(userId: string, orgId: string | null) {
-  return `octohandy.chat.${userId}.${orgId ?? "personal"}`
+// v2: messages are AI SDK UIMessages (parts), v1 stored the old { content, images } shape.
+export function chatKey(userId: string, orgId: string | null) {
+  return `octohandy.chat.v2.${userId}.${orgId ?? "personal"}`
 }
 
 export const store = {
-  getChat(userId: string, orgId: string | null): ChatMsg[] {
+  getChat(userId: string, orgId: string | null): UIMessage[] {
     if (!userId || typeof window === "undefined") return EMPTY_CHAT
     const key = chatKey(userId, orgId)
     const cached = chatCache.get(key)
     if (cached) return cached
     try {
-      const messages = JSON.parse(localStorage.getItem(key) || "[]") as ChatMsg[]
+      const messages = JSON.parse(localStorage.getItem(key) || "[]") as UIMessage[]
       chatCache.set(key, messages)
       return messages
     } catch {
@@ -66,29 +61,12 @@ export const store = {
       return EMPTY_CHAT
     }
   },
-  setChat(msgs: ChatMsg[], userId: string, orgId: string | null) {
+  setChat(msgs: UIMessage[], userId: string, orgId: string | null) {
     if (typeof window === "undefined" || !userId) return
     const key = chatKey(userId, orgId)
-    localStorage.setItem(key, JSON.stringify(msgs))
-    chatCache.set(key, msgs)
-    window.dispatchEvent(new CustomEvent("stockflow:chat", { detail: { key } }))
-  },
-  subscribeChat(userId: string, orgId: string | null, onChange: () => void) {
-    if (typeof window === "undefined" || !userId) return () => {}
-    const key = chatKey(userId, orgId)
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== key) return
-      chatCache.delete(key)
-      onChange()
-    }
-    const onChat = (event: Event) => {
-      if ((event as CustomEvent<{ key: string }>).detail?.key === key) onChange()
-    }
-    window.addEventListener("storage", onStorage)
-    window.addEventListener("stockflow:chat", onChat)
-    return () => {
-      window.removeEventListener("storage", onStorage)
-      window.removeEventListener("stockflow:chat", onChat)
-    }
+    // shortcut: image parts are data URLs and would blow the ~5 MB localStorage quota, so history keeps text only; store images server-side if they must survive a reload.
+    const textOnly = msgs.map((m) => ({ ...m, parts: m.parts.filter((p) => p.type !== "file") }))
+    localStorage.setItem(key, JSON.stringify(textOnly))
+    chatCache.set(key, textOnly)
   },
 }

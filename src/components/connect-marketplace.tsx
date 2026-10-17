@@ -3,7 +3,8 @@
 import { CheckCircle2, ExternalLink, Loader2, RefreshCw, ShieldCheck } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Button, MarketplaceLogo, Modal } from "@/components/ui"
+import { Button, MarketplaceLogo } from "@/components/ui"
+import { ModalOrCard } from "@/components/chat-card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { buttonVariants } from "@/components/ui/button"
 import type { Shop } from "@/lib/store"
@@ -65,12 +66,15 @@ export function ConnectMarketplaceModal({
   request,
   initialMarketplace,
   onConnected,
+  inline = false,
 }: {
   open: boolean
   onClose: () => void
   request: Requester
   initialMarketplace?: string | null
   onConnected?: (shop: Shop) => void
+  /** Render as a card in the chat instead of a modal. */
+  inline?: boolean
 }) {
   const [marketplace, setMarketplace] = useState<string | null>(initialMarketplace ?? null)
   const [session, setSession] = useState<DesktopSession | null>(null)
@@ -147,7 +151,7 @@ export function ConnectMarketplaceModal({
   const expires = session ? new Date(session.expiresAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : null
 
   return (
-    <Modal open={open} onClose={() => void close()} title={name ? `Connecter ${name}` : "Connecter une marketplace"} wide>
+    <ModalOrCard inline={inline} open={open} onClose={() => void close()} title={name ? `Connecter ${name}` : "Connecter une marketplace"}>
       {!session ? (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
@@ -210,6 +214,6 @@ export function ConnectMarketplaceModal({
           </div>
         </div>
       )}
-    </Modal>
+    </ModalOrCard>
   )
 }

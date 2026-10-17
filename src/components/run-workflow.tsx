@@ -3,7 +3,8 @@
 import { AlertTriangle, Check, ExternalLink, Loader2, MonitorSmartphone, Play, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { Badge, Button, Modal, Segmented } from "@/components/ui"
+import { Badge, Button, Segmented } from "@/components/ui"
+import { ModalOrCard } from "@/components/chat-card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { buttonVariants } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -85,10 +86,13 @@ export function RunWorkflowModal({
   workflow,
   onClose,
   request,
+  inline = false,
 }: {
   workflow: { id: string; title: string; marketplace: string } | null
   onClose: () => void
   request: Requester
+  /** Render as a card in the chat instead of a modal. */
+  inline?: boolean
 }) {
   const [run, setRun] = useState<WorkflowRun | null>(null)
   const [busy, setBusy] = useState(false)
@@ -180,7 +184,7 @@ export function RunWorkflowModal({
   const plan = run?.plan
 
   return (
-    <Modal open={!!workflow} onClose={() => void reject()} title={workflow ? `Lancer · ${workflow.title}` : "Lancer"} wide>
+    <ModalOrCard inline={inline} open={!!workflow} onClose={() => void reject()} title={workflow ? `Lancer · ${workflow.title}` : "Lancer"}>
       {!run && (
         <div className="flex flex-col items-center gap-3 py-12 text-sm text-muted-foreground">
           <Loader2 className="w-8 h-8 animate-spin" />
@@ -306,6 +310,6 @@ export function RunWorkflowModal({
       {run && run.status === "rejected" && (
         <p className="text-sm text-muted-foreground flex items-center gap-2"><Play className="w-4 h-4" /> Exécution refusée.</p>
       )}
-    </Modal>
+    </ModalOrCard>
   )
 }
