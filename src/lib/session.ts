@@ -27,7 +27,12 @@ export function verifyToken(token: string | undefined | null) {
   return sig.length === good.length && timingSafeEqual(Buffer.from(sig), Buffer.from(good))
 }
 
+export function accessConfigured() {
+  return Boolean((process.env.APP_ACCESS_PASSWORD || "").trim()) && Boolean(secret().trim())
+}
+
 export function passwordOk(pw: string) {
-  const want = process.env.APP_ACCESS_PASSWORD || ""
-  return !!want && pw.length === want.length && timingSafeEqual(Buffer.from(pw), Buffer.from(want))
+  const want = (process.env.APP_ACCESS_PASSWORD || "").trim()
+  const got = pw.trim()
+  return !!want && got.length === want.length && timingSafeEqual(Buffer.from(got), Buffer.from(want))
 }

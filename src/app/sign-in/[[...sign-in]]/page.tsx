@@ -21,7 +21,8 @@ function SignInForm() {
     const res = await fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) })
     setBusy(false)
     if (!res.ok) {
-      setError("Mot de passe incorrect.")
+      const data = (await res.json().catch(() => ({}))) as { error?: string }
+      setError(res.status === 401 ? "Mot de passe incorrect." : data.error || `Connexion impossible (${res.status}).`)
       return
     }
     router.replace(params.get("next") || "/dashboard")
