@@ -23,7 +23,11 @@ Ouvre http://localhost:3000
 
 ## Deploy
 
-- GitHub: push `main`
-- Vercel: importer le repo, ajouter les env Clerk, déployer
+Repo: https://github.com/yassirboudda/hackathon
+
+```bash
+git push origin main
+vercel --prod
+```
 
 Dans le dashboard Clerk, ajoute l’URL Vercel aux allowed origins / redirect URLs.

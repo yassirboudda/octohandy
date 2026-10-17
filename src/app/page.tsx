@@ -1,12 +1,7 @@
-import { auth } from "@clerk/nextjs/server"
 import Link from "next/link"
-import { redirect } from "next/navigation"
 import { Button } from "@/components/ui"
 
-export default async function HomePage() {
-  const { userId } = await auth()
-  if (userId) redirect("/dashboard")
-
+export default function HomePage() {
   return (
     <div className="min-h-dvh flex flex-col">
       <header className="max-w-5xl mx-auto w-full px-4 py-5 flex items-center justify-between">
